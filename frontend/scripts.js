@@ -19,10 +19,12 @@ const GPTResearcher = (() => {
   }
 
   let dispose_socket = null
+  let markdownDocs = '' // Accumulates markdown content across websocket callbacks
   const startResearch = () => {
     document.getElementById('output').innerHTML = ''
     document.getElementById('reportContainer').innerHTML = ''
     dispose_socket?.()
+    markdownDocs = '';  // Reset accumulated markdown on new research
 
     const imageContainer = document.getElementById('selectedImagesContainer')
     imageContainer.innerHTML = ''
@@ -119,11 +121,64 @@ const GPTResearcher = (() => {
   }
 
   const writeReport = (data, converter) => {
-    const reportContainer = document.getElementById('reportContainer')
-    const markdownOutput = converter.makeHtml(data.output)
-    reportContainer.innerHTML += markdownOutput
+    // Accumulate markdown content across callbacks
+    if (!markdownDocs) {
+      markdownDocs = data.output;
+    } else {
+      markdownDocs += data.output;
+    }
+
+    const reportContainer = document.getElementById('reportContainer');
+    const htmldocs = converter.makeHtml(markdownDocs);
+
+    reportContainer.innerHTML = htmldocs
     updateScroll()
   }
+
+
+  //   const reportContainer = document.getElementById('reportContainer')
+  //   const markdownOutput = converter.makeHtml(data.output)
+  //   console.log("Received report data:", data.output);  // Debug log
+
+  //   // Create temporary container for new content
+  //   const newContentDiv = document.createElement('div')
+  //   newContentDiv.innerHTML = markdownOutput
+    
+  //   // Check if last element is a paragraph and new content starts with paragraph
+  //   const lastChild = reportContainer.lastElementChild
+  //   const firstNewChild = newContentDiv.firstElementChild
+
+  //   // converter.markdownOutput
+  //   // I think what can be done here to catch all tags is to have a variable that stores the markdown
+  //   // When calling makeHtml, display the child up till the second last child. The last child is likely to be malformed
+  //   // So, append future inputs to the last child and call makeHtml again. this will ensure that markdown is transferred properly.
+  //   // A better solution would be to read the API and determine if there's a recommended way to handle this, since it's quite a common case
+  //   // When you are streaming while converting to html.
+    
+  //   if (
+  //     (
+  //       lastChild?.tagName === 'P' || 
+  //       lastChild?.tagName === 'DIV'  || 
+  //       lastChild?.tagName.charAt() === 'H'
+  //     ) && firstNewChild?.tagName === 'P'
+  //   ) {
+  //     // Merge paragraph contents
+  //     lastChild.innerHTML += ' ' + firstNewChild.innerHTML
+  //     // Append remaining nodes after first paragraph
+  //     Array.from(newContentDiv.childNodes).slice(1).forEach(node => {
+  //       reportContainer.appendChild(node.cloneNode(true))
+  //     })
+  //   } else {
+  //     // Append all new nodes normally
+  //     Array.from(newContentDiv.childNodes).forEach(node => {
+  //       reportContainer.appendChild(node.cloneNode(true))
+  //     })
+  //   }
+
+  //   console.log("Report container innerHTML:", reportContainer.innerHTML);  // Debug log
+    
+  //   updateScroll()
+  // }
 
   const updateDownloadLink = (data) => {
     if (!data.output) {
@@ -153,7 +208,15 @@ const GPTResearcher = (() => {
   }
 
   const updateScroll = () => {
-    window.scrollTo(0, document.body.scrollHeight)
+    // Only scroll if user hasn't scrolled up manually
+    const scrolledFromBottom = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight)
+    console.log("scrolledFromBottom:", scrolledFromBottom);  // Debug log
+    if (scrolledFromBottom < 200) {  // If within 200px of bottom
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
   }
 
   const copyToClipboard = () => {
