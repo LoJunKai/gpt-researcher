@@ -98,12 +98,13 @@
     },
     {
       type: 'category',
-      label: 'Search Engines',
+      label: 'Retrievers',
       collapsible: true,
       collapsed: true,
       items: [
-        'gpt-researcher/search-engines/retrievers',
-        'gpt-researcher/search-engines/test-your-retriever'
+        'gpt-researcher/search-engines/search-engines',
+        'gpt-researcher/retrievers/mcp-configs',
+        'gpt-researcher/search-engines/test-your-retriever',
         ]
     },
     {
@@ -131,6 +132,6 @@
     'roadmap',
     'faq',
   ],
-  // pydoc-markdown auto-generated markdowns from docstrings
-  referenceSideBar: [require("./docs/reference/sidebar.json")]
+  // Removing empty Reference category that was causing the build error
+  referenceSideBar: []
 };
